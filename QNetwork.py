@@ -30,7 +30,7 @@ class QNetwork(nn.Module):
         
     def forward(self, x):
         x = self.extract_feature(x)
-        x = x.view(x.size(0)[0], -1)
+        x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
         
