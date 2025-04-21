@@ -57,7 +57,6 @@ if __name__ == "__main__":
     tic = time.time()
     state = env.reset()
     for episode in range(NUM_EPISODES):
-        print(f"Episode {episode + 1}/{NUM_EPISODES}")
         env.reset()
         episode_reward = 0.0
         done = False
@@ -77,7 +76,6 @@ if __name__ == "__main__":
             episode_reward += reward
             steps += 1
             update(steps)
-        print(f"Episode {episode + 1} | Epsilon: {epsilon:.4f} | Steps: {steps} | Reward: {episode_reward:.2f}")
         reward_history.append(episode_reward)    
         toc = time.time()
         average_reward = np.mean(reward_history[-100:])
