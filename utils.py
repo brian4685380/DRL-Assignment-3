@@ -1,10 +1,10 @@
 from constant import *
-import numpy as np
+import math
 def update_epsilon(episode):
-    episode_start = EPSILON_START
-    episode_final = EPSILON_FINAL
+    epsilon_start = EPSILON_START
+    epsilon_final = EPSILON_FINAL
     epsilon_decay = EPSILON_DECAY
-    return episode_final + (episode_start - episode_final) * np.exp(-1. * (episode + 1) / epsilon_decay)
+    return max(epsilon_final, epsilon_start * (epsilon_decay ** episode))
 
 def update_beta(episode):
     beta_start = BETA_START

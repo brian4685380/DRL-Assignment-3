@@ -35,25 +35,18 @@ class PrioritizedBuffer:
 
         weights = (len(self.buffer) * probabilities[idx]) ** (-beta)
         weights /= weights.max()
-        weights = torch.FloatTensor(weights).unsqueeze(1)
 
         batch = list(zip(*samples))
-        states      = torch.cat([
-            torch.from_numpy(s.squeeze(0).copy()).unsqueeze(0)
-            for s in batch[0]
-        ])
-        actions     = torch.LongTensor(batch[1]).unsqueeze(1)
-        rewards     = torch.FloatTensor(batch[2]).unsqueeze(1)
-        next_states = torch.cat([
-            torch.from_numpy(s.squeeze(0).copy()).unsqueeze(0)
-            for s in batch[3]
-        ])
-        dones       = torch.FloatTensor(batch[4]).unsqueeze(1)
+        states = np.concatenate(batch[0])
+        actions = batch[1]
+        rewards = batch[2]
+        next_states = np.concatenate(batch[3])
+        dones = batch[4]
         return states, actions, rewards, next_states, dones, idx, weights
     
     def update_priorities(self, idx, priorities):
         for i, p in zip(idx, priorities):
-            self.priorities[i] = p.item()
+            self.priorities[i] = p
             
     def __len__(self):
         return len(self.buffer)
