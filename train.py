@@ -9,19 +9,18 @@ from constant import *
 from utils import *
 from PrioritizedBuffer import PrioritizedBuffer
 from torch.optim import Adam
+from tqdm import trange
 import time
+from wrappers import wrap_environment
 
 def render_rgb(env):
     return Image.fromarray(env.render(mode='rgb_array'))
 
-env = gym_super_mario_bros.make('SuperMarioBros-v0')
-env = JoypadSpace(env, COMPLEX_MOVEMENT)
+env = wrap_environment("SuperMarioBros-v0", COMPLEX_MOVEMENT)
 env.reset()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-input_shape = env.observation_space.shape  # (H, W, C)
-input_shape = (input_shape[2], input_shape[0], input_shape[1])  # → (C, H, W)
-
+input_shape = env.observation_space.shape
 qnet = QNetwork(input_shape, env.action_space.n).to(device)
 target_qnet = QNetwork(input_shape, env.action_space.n).to(device)
 qnet_dir = "mario_dqn_model.pth"
@@ -62,8 +61,7 @@ def update(steps, beta):
 
 if __name__ == "__main__":
     tic = time.time()
-    for episode in range(NUM_EPISODES):
-        print(f"Episode {episode}")
+    for episode in trange(NUM_EPISODES):
         episode_reward = 0.0
         state = env.reset()
         state_np = state
@@ -80,15 +78,16 @@ if __name__ == "__main__":
                 action = env.action_space.sample()
             else:
                 state_np = state 
-                state = torch.from_numpy(state.copy()).permute(2, 0, 1).float().unsqueeze(0).to(device)
-                q_values = qnet(state)
+                state = torch.from_numpy(state).unsqueeze(0).float().to(device, non_blocking=True)
+                with torch.no_grad():
+                    q_values = qnet(state)
                 action = q_values.max(1)[1].item()
             next_state, reward, done, _ = env.step(action)
             replay_buffer.push(state_np, action, reward, next_state, done)
             state = next_state
             episode_reward += reward
             steps += 1
-            print(f"step: {steps} | action: {action} | reward: {reward} | epsilon: {epsilon:.4f} | beta: {beta:.4f}")
+            # print(f"step: {steps} | action: {action} | reward: {reward} | epsilon: {epsilon:.4f} | beta: {beta:.4f}")
             update(steps, beta)
         reward_history.append(episode_reward)    
         toc = time.time()
@@ -98,8 +97,8 @@ if __name__ == "__main__":
                 best_average_reward = average_reward
                 torch.save(qnet.state_dict(), qnet_dir)
                 torch.save(target_qnet.state_dict(), target_qnet_dir)
-            print(f"Episode {episode} | average reward: {average_reward:.4f} | best reward: {best_average_reward:.2f} | time: {toc - tic:.2f}s")
-            tic = time.time()
+        print(f"Episode {episode} | average reward: {average_reward:.4f} | reward: {episode_reward:.2f} | time: {toc - tic:.2f}s")
+        tic = time.time()
     
 
 

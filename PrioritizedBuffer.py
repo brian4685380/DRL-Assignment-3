@@ -1,5 +1,4 @@
 import numpy as np
-from random import sample
 import torch
 
 class PrioritizedBuffer:
@@ -40,13 +39,13 @@ class PrioritizedBuffer:
 
         batch = list(zip(*samples))
         states      = torch.cat([
-            torch.from_numpy(s.squeeze(0).copy()).permute(2, 0, 1).unsqueeze(0)
+            torch.from_numpy(s.squeeze(0).copy()).unsqueeze(0)
             for s in batch[0]
         ])
         actions     = torch.LongTensor(batch[1]).unsqueeze(1)
         rewards     = torch.FloatTensor(batch[2]).unsqueeze(1)
         next_states = torch.cat([
-            torch.from_numpy(s.squeeze(0).copy()).permute(2, 0, 1).unsqueeze(0)
+            torch.from_numpy(s.squeeze(0).copy()).unsqueeze(0)
             for s in batch[3]
         ])
         dones       = torch.FloatTensor(batch[4]).unsqueeze(1)
