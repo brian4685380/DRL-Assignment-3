@@ -8,15 +8,15 @@ qnet_dir = "mario_PER_noisy_dueling_ddqn_model.pth"
 input_shape = (1, 84, 84)
 action_space = 12
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+qnet = NoisyDuelingQNetwork(input_shape, action_space).to(device)
+with open(qnet_dir, 'rb') as f:
+    qnet.load_state_dict(torch.load(f))
 
 class Agent(object):
     """DQN Agent for Super Mario Bros."""
     def __init__(self):
         self.action_space = gym.spaces.Discrete(action_space)
         self.device = device
-        self.qnet = NoisyDuelingQNetwork(input_shape, action_space).to(self.device)
-        self.qnet.load_state_dict(torch.load(qnet_dir, map_location=self.device))
-        self.qnet.eval()
 
     def act(self, observation):
         observation = cv2.cvtColor(observation, cv2.COLOR_RGB2GRAY)  # RGB → gray
@@ -27,6 +27,6 @@ class Agent(object):
 
         state_tensor = torch.tensor(observation, dtype=torch.float32).unsqueeze(0).to(self.device)
         with torch.no_grad():
-            q_values = self.qnet(state_tensor)
+            q_values = qnet(state_tensor)
         action = q_values.argmax(dim=1).item()
         return action
