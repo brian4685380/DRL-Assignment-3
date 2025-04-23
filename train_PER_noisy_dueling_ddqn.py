@@ -17,15 +17,10 @@ def render_rgb(env):
     return Image.fromarray(env.render(mode='rgb_array'))
 
 env = wrap_environment(
-<<<<<<< HEAD
         "SuperMarioBros-v0",
         COMPLEX_MOVEMENT,
         skip=4,
         num_steps=4
-=======
-    "SuperMarioBros-v0",
-      COMPLEX_MOVEMENT,
->>>>>>> 2797b80 (update train_PER_noisy_dueling_ddqn.py)
     )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
