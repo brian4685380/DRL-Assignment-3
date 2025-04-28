@@ -42,27 +42,6 @@ class SkipFrame(Wrapper):
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
 
-
-class FireResetEnv(Wrapper):
-    def __init__(self, env):
-        Wrapper.__init__(self, env)
-        if len(env.unwrapped.get_action_meanings()) < 3:
-            raise ValueError('Expected an action space of at least 3!')
-
-    def reset(self, **kwargs):
-        self.env.reset(**kwargs)
-        obs, _, done, _ = self.env.step(1)
-        if done:
-            self.env.reset(**kwargs)
-        obs, _, done, _ = self.env.step(2)
-        if done:
-            self.env.reset(**kwargs)
-        return obs
-
-    def step(self, action):
-        return self.env.step(action)
-
-
 class FrameBuffer(ObservationWrapper):
     def __init__(self, env, num_steps, dtype=np.float32):
         super(FrameBuffer, self).__init__(env)
@@ -119,12 +98,12 @@ class CustomReward(Wrapper):
         return state, reward, done, info
         
 
-def wrap_environment(environment, action_space, skip=4, num_steps=4):
+def wrap_environment(environment, action_space, skip=4, num_stack=4):
     env = make(environment)
     env = JoypadSpace(env, action_space)
     env = SkipFrame(env, skip=skip)
     env = FrameDownsample(env)
     env = ImageToPyTorch(env)
-    env = FrameBuffer(env, num_steps=num_steps)
+    env = FrameBuffer(env, num_steps=num_stack)
     env = NormalizeFloats(env)
     return env
